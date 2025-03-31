@@ -1,421 +1,447 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, XCircle } from 'lucide-react';
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
-const MathQuiz = () => {
-  // Quiz states
-  const [questions, setQuestions] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [score, setScore] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [quizComplete, setQuizComplete] = useState(false);
-  const [answers, setAnswers] = useState([]);
-  
-  // Setup states
-  const [isConfiguring, setIsConfiguring] = useState(true);
-  const [numQuestions, setNumQuestions] = useState('20');
-  const [setupError, setSetupError] = useState('');
-  const [difficulty, setDifficulty] = useState('easy');
-  const [operations, setOperations] = useState({
-    addition: false,
-    subtraction: false,
-    multiplication: false,
-    division: false
-  });
-
-  const getNumberRange = (operation) => {
-    switch (difficulty) {
-      case 'easy':
-        switch (operation) {
-          case 'addition': return { min: 1, max: 9 };
-          case 'subtraction': return { min: 1, max: 9 };
-          case 'multiplication': return { min: 2, max: 9 };
-          case 'division': return { min: 2, max: 9 };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        break;
-      case 'medium':
-        switch (operation) {
-          case 'addition': return { min: 10, max: 99 };
-          case 'subtraction': return { min: 10, max: 99 };
-          case 'multiplication': return { min: 10, max: 99 };
-          case 'division': return { min: 2, max: 12 }; // Keep division manageable
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        break;
-      case 'hard':
-        switch (operation) {
-          case 'addition': return { min: 100, max: 999 };
-          case 'subtraction': return { min: 100, max: 999 };
-          case 'multiplication': return { min: 100, max: 999 };
-          case 'division': return { min: 2, max: 20 }; // Keep division manageable
+        h1 {
+            color: #2c3e50;
+            text-align: center;
         }
-        break;
-    }
-  };
-
-  const generateQuestion = () => {
-    const selectedOps = Object.entries(operations)
-      .filter(([_, selected]) => selected)
-      .map(([op]) => op);
-    
-    const operation = selectedOps[Math.floor(Math.random() * selectedOps.length)];
-    const range = getNumberRange(operation);
-    
-    let num1, num2, answer, symbol;
-    
-    switch (operation) {
-      case 'addition':
-        num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        answer = num1 + num2;
-        symbol = '+';
-        break;
-      case 'subtraction':
-        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        // Ensure num1 is larger for positive result
-        const minNum1 = Math.max(num2, range.min);
-        num1 = Math.floor(Math.random() * (range.max - minNum1 + 1)) + minNum1;
-        answer = num1 - num2;
-        symbol = '−';
-        break;
-      case 'multiplication':
-        if (difficulty === 'hard') {
-          // For hard difficulty, use one triple-digit and one single-digit number
-          num1 = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
-          num2 = Math.floor(Math.random() * 8) + 2; // 2-9
-        } else {
-          num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-          num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        .setup-screen, .quiz-screen, .result-screen {
+            transition: opacity 0.3s;
         }
-        answer = num1 * num2;
-        symbol = '×';
-        break;
-      case 'division':
-        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        answer = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        num1 = num2 * answer; // Ensure clean division
-        symbol = '÷';
-        break;
-    }
-
-    return {
-      num1,
-      num2,
-      answer,
-      symbol,
-      operation,
-      attempted: false
-    };
-  };
-
-  const generateQuestions = (count) => {
-    return Array.from({ length: count }, () => generateQuestion());
-  };
-
-  const startQuiz = () => {
-    const count = parseInt(numQuestions);
-    if (isNaN(count) || count < 1 || count > 50) {
-      setSetupError('Please enter a number between 1 and 50');
-      return;
-    }
-    
-    const selectedOps = Object.values(operations).filter(Boolean).length;
-    if (selectedOps === 0) {
-      setSetupError('Please select at least one operation');
-      return;
-    }
-
-    setQuestions(generateQuestions(count));
-    setIsConfiguring(false);
-    setAnswers([]);
-  };
-
-  const handleAnswer = () => {
-    const currentAnswer = parseInt(userAnswer);
-    const correct = currentAnswer === questions[currentQuestion].answer;
-    
-    setIsCorrect(correct);
-    setShowFeedback(true);
-    
-    if (correct) {
-      setScore(score + 1);
-    }
-    
-    const newAnswers = [...answers];
-    newAnswers[currentQuestion] = {
-      question: `${questions[currentQuestion].num1} ${questions[currentQuestion].symbol} ${questions[currentQuestion].num2}`,
-      correctAnswer: questions[currentQuestion].answer,
-      userAnswer: currentAnswer,
-      isCorrect: correct
-    };
-    setAnswers(newAnswers);
-  };
-
-  const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setUserAnswer('');
-      setShowFeedback(false);
-    } else {
-      setQuizComplete(true);
-    }
-  };
-
-  const handleRestart = () => {
-    setIsConfiguring(true);
-    setCurrentQuestion(0);
-    setUserAnswer('');
-    setScore(0);
-    setShowFeedback(false);
-    setIsCorrect(false);
-    setQuizComplete(false);
-    setAnswers([]);
-    setNumQuestions('20');
-    setSetupError('');
-    setDifficulty('easy');
-  };
-
-  if (isConfiguring) {
-    return (
-      <Card className="w-full max-w-lg mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            Setup Math Quiz
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Select Difficulty:
-              </label>
-              <RadioGroup
-                value={difficulty}
-                onValueChange={setDifficulty}
-                className="flex flex-col space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="easy" id="easy" />
-                  <label htmlFor="easy">Easy (Single Digit)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="medium" id="medium" />
-                  <label htmlFor="medium">Medium (Double Digit)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="hard" id="hard" />
-                  <label htmlFor="hard">Hard (Triple Digit)</label>
-                </div>
-              </RadioGroup>
+        .hide {
+            display: none;
+        }
+        .question {
+            font-size: 24px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .feedback {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .progress {
+            margin: 20px 0;
+            background-color: #eee;
+            border-radius: 5px;
+            height: 20px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .summary {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .summary-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .reset-btn {
+            background-color: #2ecc71;
+        }
+        .reset-btn:hover {
+            background-color: #27ae60;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Quiz App</h1>
+        
+        <!-- Setup Screen -->
+        <div class="setup-screen">
+            <div>
+                <label for="numQuestions">Number of Questions:</label>
+                <input type="number" id="numQuestions" min="1" max="50" value="10">
             </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Select Operations:
-              </label>
-              <div className="space-y-2">
-                {Object.entries({
-                  addition: 'Addition (+)',
-                  subtraction: 'Subtraction (−)',
-                  multiplication: 'Multiplication (×)',
-                  division: 'Division (÷)'
-                }).map(([key, label]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={key}
-                      checked={operations[key]}
-                      onCheckedChange={(checked) => {
-                        setOperations(prev => ({
-                          ...prev,
-                          [key]: checked
-                        }));
-                        setSetupError('');
-                      }}
-                    />
-                    <label
-                      htmlFor={key}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Number of Questions (1-50):
-              </label>
-              <Input
-                type="number"
-                value={numQuestions}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || /^\d+$/.test(value)) {
-                    setNumQuestions(value);
-                    setSetupError('');
-                  }
-                }}
-                min="1"
-                max="50"
-                className="text-lg"
-                placeholder="Enter number of questions"
-              />
-              {setupError && (
-                <p className="text-sm text-red-500">{setupError}</p>
-              )}
-            </div>
-
-            <Button 
-              onClick={startQuiz}
-              className="w-full"
-            >
-              Start Quiz
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (quizComplete) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            Quiz Complete!
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold mb-2">
-                Final Score: {score} / {questions.length}
-              </div>
-              <div className="text-xl mb-6">
-                ({Math.round((score / questions.length) * 100)}%)
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="font-semibold text-lg mb-2">Question Summary:</div>
-              {answers.map((answer, index) => (
-                <div 
-                  key={index}
-                  className={`p-3 rounded-lg flex items-center justify-between ${
-                    answer.isCorrect ? 'bg-green-50' : 'bg-red-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-600">Q{index + 1}:</span>
-                    <span className="font-medium">{answer.question} = {answer.correctAnswer}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Your answer: {answer.userAnswer}</span>
-                    {answer.isCorrect ? (
-                      <CheckCircle className="text-green-600 w-5 h-5" />
-                    ) : (
-                      <XCircle className="text-red-600 w-5 h-5" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Button onClick={handleRestart} className="w-full mt-6">
-              Start New Quiz
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const currentQ = questions[currentQuestion];
-
-  return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl text-center">
-          Math Practice
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="text-lg text-center mb-4">
-            Question {currentQuestion + 1} of {questions.length}
-          </div>
-          
-          <div className="text-2xl text-center font-bold mb-6">
-            {currentQ.num1} {currentQ.symbol} {currentQ.num2} = ?
-          </div>
-
-          <div className="space-y-4">
-            <Input
-              type="number"
-              value={userAnswer}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === '' || /^\d+$/.test(value)) {
-                  setUserAnswer(value);
-                }
-              }}
-              placeholder="Enter your answer"
-              disabled={showFeedback}
-              className="text-center text-xl"
-            />
             
-            {!showFeedback ? (
-              <Button 
-                onClick={handleAnswer}
-                className="w-full"
-                disabled={!userAnswer}
-              >
-                Check Answer
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleNext}
-                className="w-full"
-              >
-                Next Question
-              </Button>
-            )}
-          </div>
-
-          {showFeedback && (
-            <Alert className={isCorrect ? "bg-green-50" : "bg-red-50"}>
-              <div className="flex items-center gap-2">
-                {isCorrect ? (
-                  <CheckCircle className="text-green-600" />
-                ) : (
-                  <XCircle className="text-red-600" />
-                )}
-                <AlertDescription>
-                  {isCorrect ? (
-                    "Correct! Well done!"
-                  ) : (
-                    `Incorrect. The correct answer is ${currentQ.answer}`
-                  )}
-                </AlertDescription>
-              </div>
-            </Alert>
-          )}
-
-          <div className="text-center mt-4">
-            Current Score: {score} / {currentQuestion + 1}
-          </div>
+            <div>
+                <label>Operations:</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="addition" checked>
+                        <label for="addition">Addition</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="subtraction">
+                        <label for="subtraction">Subtraction</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="multiplication">
+                        <label for="multiplication">Multiplication</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="division">
+                        <label for="division">Division</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label>Difficulty:</label>
+                <div class="radio-group">
+                    <div class="checkbox-item">
+                        <input type="radio" name="difficulty" id="easy" value="easy" checked>
+                        <label for="easy">Easy (Single Digit)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="difficulty" id="medium" value="medium">
+                        <label for="medium">Medium (Double Digit)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="difficulty" id="hard" value="hard">
+                        <label for="hard">Hard (Triple Digit)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startBtn">Start Quiz</button>
         </div>
-      </CardContent>
-    </Card>
-  );
-};
+        
+        <!-- Quiz Screen -->
+        <div class="quiz-screen hide">
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="question" id="questionText"></div>
+            <div>
+                <input type="number" id="answerInput" placeholder="Your answer">
+                <button id="submitBtn">Submit</button>
+            </div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+        
+        <!-- Result Screen -->
+        <div class="result-screen hide">
+            <h2>Quiz Completed!</h2>
+            <div class="summary">
+                <p>You scored: <span class="summary-score" id="finalScore"></span></p>
+                <div id="questionSummary"></div>
+            </div>
+            <button class="reset-btn" id="resetBtn">Start New Quiz</button>
+        </div>
+    </div>
 
-export default MathQuiz;
+    <script>
+        // DOM Elements
+        const setupScreen = document.querySelector('.setup-screen');
+        const quizScreen = document.querySelector('.quiz-screen');
+        const resultScreen = document.querySelector('.result-screen');
+        const numQuestionsInput = document.getElementById('numQuestions');
+        const startBtn = document.getElementById('startBtn');
+        const questionText = document.getElementById('questionText');
+        const answerInput = document.getElementById('answerInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const feedback = document.getElementById('feedback');
+        const progressBar = document.querySelector('.progress-bar');
+        const finalScore = document.getElementById('finalScore');
+        const questionSummary = document.getElementById('questionSummary');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Operation checkboxes
+        const additionCheckbox = document.getElementById('addition');
+        const subtractionCheckbox = document.getElementById('subtraction');
+        const multiplicationCheckbox = document.getElementById('multiplication');
+        const divisionCheckbox = document.getElementById('division');
+
+        // Quiz state
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionResults = [];
+
+        // Start quiz button event
+        startBtn.addEventListener('click', () => {
+            const numQuestions = parseInt(numQuestionsInput.value);
+            
+            // Validate operations selection
+            const operations = [];
+            if (additionCheckbox.checked) operations.push('addition');
+            if (subtractionCheckbox.checked) operations.push('subtraction');
+            if (multiplicationCheckbox.checked) operations.push('multiplication');
+            if (divisionCheckbox.checked) operations.push('division');
+            
+            if (operations.length === 0) {
+                alert('Please select at least one operation');
+                return;
+            }
+
+            // Get difficulty level
+            const difficultyElem = document.querySelector('input[name="difficulty"]:checked');
+            const difficulty = difficultyElem ? difficultyElem.value : 'easy';
+            
+            // Generate questions
+            generateQuestions(numQuestions, operations, difficulty);
+            
+            // Show first question
+            showQuestion();
+            
+            // Switch screens
+            setupScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            
+            // Focus on answer input
+            answerInput.focus();
+        });
+
+        // Generate questions
+        function generateQuestions(count, operations, difficulty) {
+            questions = [];
+            
+            // Set number ranges based on difficulty
+            let min, max;
+            if (difficulty === 'easy') {
+                min = 1;
+                max = 9;
+            } else if (difficulty === 'medium') {
+                min = 10;
+                max = 99;
+            } else { // hard
+                min = 100;
+                max = 999;
+            }
+            
+            for (let i = 0; i < count; i++) {
+                // Choose random operation from selected ones
+                const operation = operations[Math.floor(Math.random() * operations.length)];
+                
+                let num1, num2, answer, questionString;
+                
+                // For division, ensure we get whole number answers
+                if (operation === 'division') {
+                    // For division, we need to ensure divisible numbers
+                    if (difficulty === 'easy') {
+                        // Simple division for easy level
+                        num2 = Math.floor(Math.random() * 9) + 1; // Divisor 1-9
+                        answer = Math.floor(Math.random() * 9) + 1; // Quotient 1-9
+                        num1 = num2 * answer; // Dividend
+                    } else if (difficulty === 'medium') {
+                        // Medium difficulty division
+                        num2 = Math.floor(Math.random() * 9) + 1; // Divisor 1-9
+                        answer = Math.floor(Math.random() * 90) + 10; // Quotient 10-99
+                        num1 = num2 * answer; // Dividend
+                    } else { // hard
+                        // Hard difficulty division
+                        num2 = Math.floor(Math.random() * 90) + 10; // Divisor 10-99
+                        answer = Math.floor(Math.random() * 90) + 10; // Quotient 10-99
+                        num1 = num2 * answer; // Dividend
+                    }
+                    questionString = `${num1} ÷ ${num2} = ?`;
+                } else {
+                    // Regular number generation for other operations
+                    num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    
+                    // Ensure subtraction doesn't result in negative numbers in easy mode
+                    if (operation === 'subtraction' && num2 > num1) {
+                        [num1, num2] = [num2, num1]; // Swap values
+                    }
+                    
+                    // Calculate answer based on operation
+                    switch (operation) {
+                        case 'addition':
+                            answer = num1 + num2;
+                            questionString = `${num1} + ${num2} = ?`;
+                            break;
+                        case 'subtraction':
+                            answer = num1 - num2;
+                            questionString = `${num1} - ${num2} = ?`;
+                            break;
+                        case 'multiplication':
+                            answer = num1 * num2;
+                            questionString = `${num1} × ${num2} = ?`;
+                            break;
+                    }
+                }
+                
+                // Add question to the array
+                questions.push({
+                    question: questionString,
+                    answer: answer,
+                    userAnswer: null,
+                    correct: null
+                });
+            }
+            
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            score = 0;
+            questionResults = [];
+        }
+
+        // Show current question
+        function showQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            questionText.textContent = `Question ${currentQuestionIndex + 1}: ${currentQuestion.question}`;
+            answerInput.value = '';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            
+            // Update progress bar
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Focus on answer input
+            answerInput.focus();
+        }
+
+        // Submit answer button event
+        submitBtn.addEventListener('click', checkAnswer);
+        
+        // Also allow Enter key to submit
+        answerInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Check the submitted answer
+        function checkAnswer() {
+            if (answerInput.value === '') {
+                feedback.textContent = 'Please enter an answer';
+                feedback.className = 'feedback';
+                return;
+            }
+            
+            const userAnswer = parseInt(answerInput.value);
+            const currentQuestion = questions[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            
+            // Store user's answer
+            currentQuestion.userAnswer = userAnswer;
+            currentQuestion.correct = userAnswer === correctAnswer;
+            
+            // Add to results
+            questionResults.push({
+                question: currentQuestion.question,
+                correctAnswer: correctAnswer,
+                userAnswer: userAnswer,
+                correct: currentQuestion.correct
+            });
+            
+            // Update score
+            if (currentQuestion.correct) {
+                score++;
+                feedback.textContent = 'Correct!';
+                feedback.className = 'feedback correct';
+            } else {
+                feedback.textContent = `Incorrect. The correct answer is ${correctAnswer}.`;
+                feedback.className = 'feedback incorrect';
+            }
+            
+            // Proceed to next question after a short delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                
+                // Check if quiz is complete
+                if (currentQuestionIndex < questions.length) {
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1500);
+        }
+
+        // Show final results
+        function showResults() {
+            quizScreen.classList.add('hide');
+            resultScreen.classList.remove('hide');
+            
+            // Update final score
+            finalScore.textContent = `${score} out of ${questions.length} (${Math.round((score / questions.length) * 100)}%)`;
+            
+            // Generate question summary
+            let summaryHTML = '<div style="margin-top: 20px;">';
+            
+            questionResults.forEach((result, index) => {
+                const resultClass = result.correct ? 'correct' : 'incorrect';
+                summaryHTML += `
+                    <div style="margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
+                        <div>Question ${index + 1}: ${result.question}</div>
+                        <div>Your answer: <span class="${resultClass}">${result.userAnswer}</span></div>
+                        ${!result.correct ? `<div>Correct answer: ${result.correctAnswer}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            summaryHTML += '</div>';
+            questionSummary.innerHTML = summaryHTML;
+        }
+
+        // Reset button event
+        resetBtn.addEventListener('click', () => {
+            resultScreen.classList.add('hide');
+            setupScreen.classList.remove('hide');
+        });
+    </script>
+</body>
+</html>
