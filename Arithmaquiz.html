@@ -1,0 +1,421 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+const MathQuiz = () => {
+  // Quiz states
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [score, setScore] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [quizComplete, setQuizComplete] = useState(false);
+  const [answers, setAnswers] = useState([]);
+  
+  // Setup states
+  const [isConfiguring, setIsConfiguring] = useState(true);
+  const [numQuestions, setNumQuestions] = useState('20');
+  const [setupError, setSetupError] = useState('');
+  const [difficulty, setDifficulty] = useState('easy');
+  const [operations, setOperations] = useState({
+    addition: false,
+    subtraction: false,
+    multiplication: false,
+    division: false
+  });
+
+  const getNumberRange = (operation) => {
+    switch (difficulty) {
+      case 'easy':
+        switch (operation) {
+          case 'addition': return { min: 1, max: 9 };
+          case 'subtraction': return { min: 1, max: 9 };
+          case 'multiplication': return { min: 2, max: 9 };
+          case 'division': return { min: 2, max: 9 };
+        }
+        break;
+      case 'medium':
+        switch (operation) {
+          case 'addition': return { min: 10, max: 99 };
+          case 'subtraction': return { min: 10, max: 99 };
+          case 'multiplication': return { min: 10, max: 99 };
+          case 'division': return { min: 2, max: 12 }; // Keep division manageable
+        }
+        break;
+      case 'hard':
+        switch (operation) {
+          case 'addition': return { min: 100, max: 999 };
+          case 'subtraction': return { min: 100, max: 999 };
+          case 'multiplication': return { min: 100, max: 999 };
+          case 'division': return { min: 2, max: 20 }; // Keep division manageable
+        }
+        break;
+    }
+  };
+
+  const generateQuestion = () => {
+    const selectedOps = Object.entries(operations)
+      .filter(([_, selected]) => selected)
+      .map(([op]) => op);
+    
+    const operation = selectedOps[Math.floor(Math.random() * selectedOps.length)];
+    const range = getNumberRange(operation);
+    
+    let num1, num2, answer, symbol;
+    
+    switch (operation) {
+      case 'addition':
+        num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        answer = num1 + num2;
+        symbol = '+';
+        break;
+      case 'subtraction':
+        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        // Ensure num1 is larger for positive result
+        const minNum1 = Math.max(num2, range.min);
+        num1 = Math.floor(Math.random() * (range.max - minNum1 + 1)) + minNum1;
+        answer = num1 - num2;
+        symbol = '−';
+        break;
+      case 'multiplication':
+        if (difficulty === 'hard') {
+          // For hard difficulty, use one triple-digit and one single-digit number
+          num1 = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
+          num2 = Math.floor(Math.random() * 8) + 2; // 2-9
+        } else {
+          num1 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+          num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        }
+        answer = num1 * num2;
+        symbol = '×';
+        break;
+      case 'division':
+        num2 = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        answer = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        num1 = num2 * answer; // Ensure clean division
+        symbol = '÷';
+        break;
+    }
+
+    return {
+      num1,
+      num2,
+      answer,
+      symbol,
+      operation,
+      attempted: false
+    };
+  };
+
+  const generateQuestions = (count) => {
+    return Array.from({ length: count }, () => generateQuestion());
+  };
+
+  const startQuiz = () => {
+    const count = parseInt(numQuestions);
+    if (isNaN(count) || count < 1 || count > 50) {
+      setSetupError('Please enter a number between 1 and 50');
+      return;
+    }
+    
+    const selectedOps = Object.values(operations).filter(Boolean).length;
+    if (selectedOps === 0) {
+      setSetupError('Please select at least one operation');
+      return;
+    }
+
+    setQuestions(generateQuestions(count));
+    setIsConfiguring(false);
+    setAnswers([]);
+  };
+
+  const handleAnswer = () => {
+    const currentAnswer = parseInt(userAnswer);
+    const correct = currentAnswer === questions[currentQuestion].answer;
+    
+    setIsCorrect(correct);
+    setShowFeedback(true);
+    
+    if (correct) {
+      setScore(score + 1);
+    }
+    
+    const newAnswers = [...answers];
+    newAnswers[currentQuestion] = {
+      question: `${questions[currentQuestion].num1} ${questions[currentQuestion].symbol} ${questions[currentQuestion].num2}`,
+      correctAnswer: questions[currentQuestion].answer,
+      userAnswer: currentAnswer,
+      isCorrect: correct
+    };
+    setAnswers(newAnswers);
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setUserAnswer('');
+      setShowFeedback(false);
+    } else {
+      setQuizComplete(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setIsConfiguring(true);
+    setCurrentQuestion(0);
+    setUserAnswer('');
+    setScore(0);
+    setShowFeedback(false);
+    setIsCorrect(false);
+    setQuizComplete(false);
+    setAnswers([]);
+    setNumQuestions('20');
+    setSetupError('');
+    setDifficulty('easy');
+  };
+
+  if (isConfiguring) {
+    return (
+      <Card className="w-full max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">
+            Setup Math Quiz
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Select Difficulty:
+              </label>
+              <RadioGroup
+                value={difficulty}
+                onValueChange={setDifficulty}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="easy" id="easy" />
+                  <label htmlFor="easy">Easy (Single Digit)</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="medium" id="medium" />
+                  <label htmlFor="medium">Medium (Double Digit)</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="hard" id="hard" />
+                  <label htmlFor="hard">Hard (Triple Digit)</label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Select Operations:
+              </label>
+              <div className="space-y-2">
+                {Object.entries({
+                  addition: 'Addition (+)',
+                  subtraction: 'Subtraction (−)',
+                  multiplication: 'Multiplication (×)',
+                  division: 'Division (÷)'
+                }).map(([key, label]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={key}
+                      checked={operations[key]}
+                      onCheckedChange={(checked) => {
+                        setOperations(prev => ({
+                          ...prev,
+                          [key]: checked
+                        }));
+                        setSetupError('');
+                      }}
+                    />
+                    <label
+                      htmlFor={key}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Number of Questions (1-50):
+              </label>
+              <Input
+                type="number"
+                value={numQuestions}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || /^\d+$/.test(value)) {
+                    setNumQuestions(value);
+                    setSetupError('');
+                  }
+                }}
+                min="1"
+                max="50"
+                className="text-lg"
+                placeholder="Enter number of questions"
+              />
+              {setupError && (
+                <p className="text-sm text-red-500">{setupError}</p>
+              )}
+            </div>
+
+            <Button 
+              onClick={startQuiz}
+              className="w-full"
+            >
+              Start Quiz
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (quizComplete) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">
+            Quiz Complete!
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-2">
+                Final Score: {score} / {questions.length}
+              </div>
+              <div className="text-xl mb-6">
+                ({Math.round((score / questions.length) * 100)}%)
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="font-semibold text-lg mb-2">Question Summary:</div>
+              {answers.map((answer, index) => (
+                <div 
+                  key={index}
+                  className={`p-3 rounded-lg flex items-center justify-between ${
+                    answer.isCorrect ? 'bg-green-50' : 'bg-red-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600">Q{index + 1}:</span>
+                    <span className="font-medium">{answer.question} = {answer.correctAnswer}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>Your answer: {answer.userAnswer}</span>
+                    {answer.isCorrect ? (
+                      <CheckCircle className="text-green-600 w-5 h-5" />
+                    ) : (
+                      <XCircle className="text-red-600 w-5 h-5" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button onClick={handleRestart} className="w-full mt-6">
+              Start New Quiz
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentQ = questions[currentQuestion];
+
+  return (
+    <Card className="w-full max-w-lg mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl text-center">
+          Math Practice
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="text-lg text-center mb-4">
+            Question {currentQuestion + 1} of {questions.length}
+          </div>
+          
+          <div className="text-2xl text-center font-bold mb-6">
+            {currentQ.num1} {currentQ.symbol} {currentQ.num2} = ?
+          </div>
+
+          <div className="space-y-4">
+            <Input
+              type="number"
+              value={userAnswer}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d+$/.test(value)) {
+                  setUserAnswer(value);
+                }
+              }}
+              placeholder="Enter your answer"
+              disabled={showFeedback}
+              className="text-center text-xl"
+            />
+            
+            {!showFeedback ? (
+              <Button 
+                onClick={handleAnswer}
+                className="w-full"
+                disabled={!userAnswer}
+              >
+                Check Answer
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleNext}
+                className="w-full"
+              >
+                Next Question
+              </Button>
+            )}
+          </div>
+
+          {showFeedback && (
+            <Alert className={isCorrect ? "bg-green-50" : "bg-red-50"}>
+              <div className="flex items-center gap-2">
+                {isCorrect ? (
+                  <CheckCircle className="text-green-600" />
+                ) : (
+                  <XCircle className="text-red-600" />
+                )}
+                <AlertDescription>
+                  {isCorrect ? (
+                    "Correct! Well done!"
+                  ) : (
+                    `Incorrect. The correct answer is ${currentQ.answer}`
+                  )}
+                </AlertDescription>
+              </div>
+            </Alert>
+          )}
+
+          <div className="text-center mt-4">
+            Current Score: {score} / {currentQuestion + 1}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MathQuiz;
