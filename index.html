@@ -3,548 +3,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz</title>
+    <title>Math Quiz for Children</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
+        :root {
+            --primary-color: #4a6baf;
+            --secondary-color: #8ecae6;
+            --success-color: #57cc99;
+            --error-color: #e76f51;
+            --background-color: #f8f9fa;
+            --text-color: #212529;
         }
         
-        h1 {
-            text-align: center;
-            color: #2c3e50;
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
         
         .container {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
         }
         
-        .config-section, .quiz-section, .result-section {
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .setup-section {
             margin-bottom: 20px;
         }
         
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .setup-section h2 {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
         }
         
-        .checkbox-group {
-            margin-bottom: 15px;
+        .option-box {
+            background-color: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1 0 calc(50% - 10px);
+            text-align: center;
+            font-size: 16px;
         }
         
-        .checkbox-group label {
-            margin-right: 15px;
+        .option-box:hover {
+            background-color: #f0f7fa;
+        }
+        
+        .option-box.selected {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .operation-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .operation-box {
+            background-color: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
             cursor: pointer;
+            transition: all 0.3s;
+            flex: 1 0 calc(25% - 10px);
+            text-align: center;
+            font-size: 20px;
+        }
+        
+        .operation-box:hover {
+            background-color: #f0f7fa;
+        }
+        
+        .operation-box.selected {
+            background-color: var(--secondary-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
         }
         
         .number-input {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
         
         .number-input label {
+            font-size: 16px;
             margin-right: 10px;
-            min-width: 180px;
         }
         
         .number-input input {
-            width: 60px;
+            width: 80px;
             padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
         }
         
-        .radio-group {
-            margin-bottom: 15px;
-        }
-        
-        .radio-group label {
-            margin-right: 15px;
-            cursor: pointer;
-        }
-        
-        button {
-            background-color: #3498db;
+        .start-button {
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #2980b9;
-        }
-        
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        
-        .question {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .answer-input {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        
-        .answer-input input {
-            width: 100px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px 24px;
             font-size: 18px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 30px auto 0;
+            width: 100%;
+            max-width: 200px;
         }
         
-        .feedback {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
+        .start-button:hover {
+            background-color: #3a5a99;
         }
         
-        .feedback.correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .feedback.incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
+        .quiz-section {
+            display: none;
         }
         
         .progress-container {
             width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
         }
         
         .progress-bar {
-            height: 10px;
-            background-color: #27ae60;
-            border-radius: 4px;
+            height: 100%;
+            background-color: var(--primary-color);
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.5s;
         }
         
-        .progress-text {
+        .question-display {
+            font-size: 32px;
             text-align: center;
-            font-size: 14px;
-            margin-bottom: 10px;
+            margin: 30px 0;
         }
         
-        .results {
+        .answer-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .answer-input {
+            padding: 10px;
+            font-size: 20px;
+            width: 100px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
             text-align: center;
+            margin-right: 10px;
         }
         
-        .score {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         
-        .hidden {
+        .submit-button:hover {
+            background-color: #3a5a99;
+        }
+        
+        .submit-button:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            text-align: center;
+            font-size: 20px;
+            margin: 20px 0;
+            min-height: 30px;
+        }
+        
+        .correct {
+            color: var(--success-color);
+        }
+        
+        .incorrect {
+            color: var(--error-color);
+        }
+        
+        .next-button {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
             display: none;
+            margin: 0 auto;
         }
         
-        .start-again-btn {
-            background-color: #2ecc71;
+        .next-button:hover {
+            background-color: #7dbcd6;
         }
         
-        .start-again-btn:hover {
-            background-color: #27ae60;
+        .results-section {
+            display: none;
+            text-align: center;
         }
         
-        .question-summary {
+        .results-section h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .score-display {
+            font-size: 48px;
+            margin: 20px 0;
+            color: var(--primary-color);
+        }
+        
+        .restart-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 30px auto 0;
+        }
+        
+        .restart-button:hover {
+            background-color: #3a5a99;
+        }
+        
+        .answer-summary {
             margin-top: 20px;
             text-align: left;
         }
         
-        .summary-item {
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 10px;
+        .answer-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
         }
         
-        .summary-item.correct {
-            background-color: rgba(46, 204, 113, 0.15);
+        .answer-item:last-child {
+            border-bottom: none;
         }
         
-        .summary-item.incorrect {
-            background-color: rgba(231, 76, 60, 0.15);
+        .correct-item {
+            color: var(--success-color);
         }
         
-        .user-answer {
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .correct-answer {
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .user-answer.incorrect {
-            color: #e74c3c;
-            text-decoration: line-through;
-        }
-        
-        .correct-answer.highlight {
-            color: #27ae60;
+        .incorrect-item {
+            color: var(--error-color);
         }
     </style>
 </head>
 <body>
-    <h1>Math Quiz</h1>
-    
     <div class="container">
-        <!-- Configuration Section -->
-        <div id="configSection" class="config-section">
-            <h2>Quiz Settings</h2>
-            
-            <div class="number-input">
-                <label for="questionCount">Number of questions:</label>
-                <input type="number" id="questionCount" min="1" max="50" value="10">
+        <h1>Math Quiz for Children</h1>
+        
+        <!-- Setup Section -->
+        <div id="setup-section" class="setup-section">
+            <div class="setup-section">
+                <h2>Choose Operations</h2>
+                <div class="operation-container">
+                    <div class="operation-box" data-operation="addition">+</div>
+                    <div class="operation-box" data-operation="subtraction">−</div>
+                    <div class="operation-box" data-operation="multiplication">×</div>
+                    <div class="operation-box" data-operation="division">÷</div>
+                </div>
             </div>
             
-            <div class="checkbox-group">
-                <p>Choose operations:</p>
-                <label><input type="checkbox" id="additionOp" checked> Addition</label>
-                <label><input type="checkbox" id="subtractionOp"> Subtraction</label>
-                <label><input type="checkbox" id="multiplicationOp"> Multiplication</label>
-                <label><input type="checkbox" id="divisionOp"> Division</label>
+            <div class="setup-section">
+                <h2>Choose Difficulty</h2>
+                <div class="options-container">
+                    <div class="option-box selected" data-difficulty="easy">Easy (1 digit)</div>
+                    <div class="option-box" data-difficulty="medium">Medium (2 digits)</div>
+                    <div class="option-box" data-difficulty="hard">Hard (3 digits)</div>
+                </div>
             </div>
             
-            <div class="radio-group">
-                <p>Difficulty level:</p>
-                <label><input type="radio" name="difficulty" value="easy" checked> Easy (single digit)</label>
-                <label><input type="radio" name="difficulty" value="medium"> Medium (double digit)</label>
-                <label><input type="radio" name="difficulty" value="hard"> Hard (triple digit)</label>
+            <div class="setup-section">
+                <h2>Number of Questions</h2>
+                <div class="number-input">
+                    <label for="question-count">How many questions?</label>
+                    <input type="number" id="question-count" min="1" max="50" value="10">
+                </div>
             </div>
             
-            <button id="startBtn">Start Quiz</button>
+            <button id="start-button" class="start-button">Start Quiz</button>
         </div>
         
         <!-- Quiz Section -->
-        <div id="quizSection" class="quiz-section hidden">
+        <div id="quiz-section" class="quiz-section">
             <div class="progress-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
-            <div id="progressText" class="progress-text">Question 1 of 10</div>
-            
-            <div id="questionDisplay" class="question">6 × 7 = ?</div>
-            
-            <div class="answer-input">
-                <input type="number" id="answerInput" placeholder="Your answer">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
             
-            <button id="submitBtn">Submit Answer</button>
+            <div id="question-display" class="question-display"></div>
             
-            <div id="feedback" class="feedback hidden"></div>
+            <div class="answer-form">
+                <input type="number" id="answer-input" class="answer-input" placeholder="Answer">
+                <button id="submit-button" class="submit-button">Submit</button>
+            </div>
+            
+            <div id="feedback" class="feedback"></div>
+            
+            <button id="next-button" class="next-button">Next Question</button>
         </div>
         
         <!-- Results Section -->
-        <div id="resultSection" class="result-section hidden">
+        <div id="results-section" class="results-section">
             <h2>Quiz Complete!</h2>
+            <p>Your final score:</p>
+            <div id="score-display" class="score-display"></div>
             
-            <div class="results">
-                <div id="scoreDisplay" class="score">Your score: 8/10</div>
-                <div id="percentageDisplay">Percentage: 80%</div>
-                <div id="timeDisplay">Time taken: 1:45</div>
-                
-                <p>Great job! Keep practicing to improve your math skills.</p>
-                
-                <h3>Question Summary</h3>
-                <div id="questionSummary" class="question-summary"></div>
-            </div>
+            <div id="answer-summary" class="answer-summary"></div>
             
-            <button id="startAgainBtn" class="start-again-btn">Try Another Quiz</button>
+            <button id="restart-button" class="restart-button">Take Another Quiz</button>
         </div>
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // DOM Elements
-            const configSection = document.getElementById('configSection');
-            const quizSection = document.getElementById('quizSection');
-            const resultSection = document.getElementById('resultSection');
+        // DOM Elements
+        const setupSection = document.getElementById('setup-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultsSection = document.getElementById('results-section');
+        const startButton = document.getElementById('start-button');
+        const questionDisplay = document.getElementById('question-display');
+        const answerInput = document.getElementById('answer-input');
+        const submitButton = document.getElementById('submit-button');
+        const nextButton = document.getElementById('next-button');
+        const feedback = document.getElementById('feedback');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const answerSummary = document.getElementById('answer-summary');
+        const restartButton = document.getElementById('restart-button');
+        const questionCountInput = document.getElementById('question-count');
+        const operationBoxes = document.querySelectorAll('.operation-box');
+        const difficultyOptions = document.querySelectorAll('.option-box');
+        
+        // Quiz State
+        const quizState = {
+            questions: [],
+            currentQuestionIndex: 0,
+            correctAnswers: 0,
+            quizComplete: false,
+            selectedOperations: ['multiplication'],
+            difficulty: 'easy',
+            questionCount: 10,
+            questionResults: []
+        };
+        
+        // Operation Symbols
+        const operationSymbols = {
+            addition: '+',
+            subtraction: '−',
+            multiplication: '×',
+            division: '÷'
+        };
+        
+        // Initialize
+        function init() {
+            // Default select multiplication
+            document.querySelector('.operation-box[data-operation="multiplication"]').classList.add('selected');
             
-            const questionCountInput = document.getElementById('questionCount');
-            const additionCheckbox = document.getElementById('additionOp');
-            const subtractionCheckbox = document.getElementById('subtractionOp');
-            const multiplicationCheckbox = document.getElementById('multiplicationOp');
-            const divisionCheckbox = document.getElementById('divisionOp');
-            const difficultyRadios = document.getElementsByName('difficulty');
-            
-            const startBtn = document.getElementById('startBtn');
-            const questionDisplay = document.getElementById('questionDisplay');
-            const answerInput = document.getElementById('answerInput');
-            const submitBtn = document.getElementById('submitBtn');
-            const feedback = document.getElementById('feedback');
-            
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            
-            const scoreDisplay = document.getElementById('scoreDisplay');
-            const percentageDisplay = document.getElementById('percentageDisplay');
-            const timeDisplay = document.getElementById('timeDisplay');
-            const startAgainBtn = document.getElementById('startAgainBtn');
-            
-            // Quiz State
-            let questions = [];
-            let currentQuestionIndex = 0;
-            let correctAnswers = 0;
-            let startTime;
-            let endTime;
-            
-            // Start Quiz Button Event Listener
-            startBtn.addEventListener('click', function() {
-                // Validate that at least one operation is selected
-                if (!additionCheckbox.checked && 
-                    !subtractionCheckbox.checked && 
-                    !multiplicationCheckbox.checked && 
-                    !divisionCheckbox.checked) {
-                    alert('Please select at least one operation');
-                    return;
-                }
-                
-                // Get quiz settings
-                const questionCount = parseInt(questionCountInput.value);
-                const operations = [];
-                
-                if (additionCheckbox.checked) operations.push('addition');
-                if (subtractionCheckbox.checked) operations.push('subtraction');
-                if (multiplicationCheckbox.checked) operations.push('multiplication');
-                if (divisionCheckbox.checked) operations.push('division');
-                
-                let difficulty;
-                for (const radio of difficultyRadios) {
-                    if (radio.checked) {
-                        difficulty = radio.value;
-                        break;
-                    }
-                }
-                
-                // Generate questions
-                generateQuestions(questionCount, operations, difficulty);
-                
-                // Start the quiz
-                configSection.classList.add('hidden');
-                quizSection.classList.remove('hidden');
-                showQuestion();
-                
-                // Record start time
-                startTime = new Date();
-                
-                // Set focus on answer input
-                answerInput.focus();
+            // Setup event listeners
+            setupEventListeners();
+        }
+        
+        // Event Listeners
+        function setupEventListeners() {
+            // Operation selection
+            operationBoxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    box.classList.toggle('selected');
+                    updateSelectedOperations();
+                });
             });
             
-            // Submit Answer Button Event Listener
-            submitBtn.addEventListener('click', checkAnswer);
+            // Difficulty selection
+            difficultyOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    difficultyOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    quizState.difficulty = option.dataset.difficulty;
+                });
+            });
             
-            // Enter key to submit answer
-            answerInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
+            // Start button
+            startButton.addEventListener('click', startQuiz);
+            
+            // Submit answer
+            submitButton.addEventListener('click', checkAnswer);
+            answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !submitButton.disabled) {
                     checkAnswer();
                 }
             });
             
-            // Start Again Button Event Listener
-            startAgainBtn.addEventListener('click', function() {
-                resultSection.classList.add('hidden');
-                configSection.classList.remove('hidden');
-                resetQuiz();
+            // Next question
+            nextButton.addEventListener('click', nextQuestion);
+            
+            // Restart quiz
+            restartButton.addEventListener('click', restartQuiz);
+        }
+        
+        // Update selected operations
+        function updateSelectedOperations() {
+            quizState.selectedOperations = [];
+            operationBoxes.forEach(box => {
+                if (box.classList.contains('selected')) {
+                    quizState.selectedOperations.push(box.dataset.operation);
+                }
             });
             
-            // Generate Quiz Questions
-            function generateQuestions(count, operations, difficulty) {
-                questions = [];
-                
-                // Set number range based on difficulty
-                let min, max;
-                switch (difficulty) {
-                    case 'easy':
-                        min = 1;
-                        max = 9;
-                        break;
-                    case 'medium':
-                        min = 10;
-                        max = 99;
-                        break;
-                    case 'hard':
-                        min = 100;
-                        max = 999;
-                        break;
-                }
-                
-                for (let i = 0; i < count; i++) {
-                    // Randomly select an operation
-                    const operation = operations[Math.floor(Math.random() * operations.length)];
-                    
-                    let num1, num2, answer, questionText;
-                    
-                    switch (operation) {
-                        case 'addition':
-                            num1 = getRandomNumber(min, max);
-                            num2 = getRandomNumber(min, max);
-                            answer = num1 + num2;
-                            questionText = `${num1} + ${num2} = ?`;
-                            break;
-                            
-                        case 'subtraction':
-                            // Ensure num1 > num2 to avoid negative answers for younger students
-                            num1 = getRandomNumber(min, max);
-                            num2 = getRandomNumber(min, num1);
-                            answer = num1 - num2;
-                            questionText = `${num1} - ${num2} = ?`;
-                            break;
-                            
-                        case 'multiplication':
-                            // For hard difficulty, use smaller numbers to keep products manageable
-                            const mult1Max = difficulty === 'hard' ? 50 : max;
-                            const mult2Max = difficulty === 'hard' ? 20 : max;
-                            
-                            num1 = getRandomNumber(min, mult1Max);
-                            num2 = getRandomNumber(min, mult2Max);
-                            answer = num1 * num2;
-                            questionText = `${num1} × ${num2} = ?`;
-                            break;
-                            
-                        case 'division':
-                            // Create division problems that have integer answers
-                            // First generate the answer (quotient)
-                            const quotient = getRandomNumber(min, difficulty === 'easy' ? 10 : 20);
-                            // Then generate the divisor
-                            num2 = getRandomNumber(min, difficulty === 'easy' ? 10 : 20);
-                            // Calculate the dividend
-                            num1 = quotient * num2;
-                            answer = quotient;
-                            questionText = `${num1} ÷ ${num2} = ?`;
-                            break;
-                    }
-                    
-                    questions.push({
-                        question: questionText,
-                        answer: answer,
-                        operation: operation,
-                        userAnswer: null,
-                        isCorrect: null
-                    });
-                }
+            // Ensure at least one operation is selected
+            if (quizState.selectedOperations.length === 0) {
+                document.querySelector('.operation-box[data-operation="multiplication"]').classList.add('selected');
+                quizState.selectedOperations = ['multiplication'];
             }
-            
-            // Helper to get random number within range
-            function getRandomNumber(min, max) {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-            
-            // Display current question
-            function showQuestion() {
-                const currentQuestion = questions[currentQuestionIndex];
-                questionDisplay.textContent = currentQuestion.question;
-                answerInput.value = '';
-                feedback.classList.add('hidden');
-                
-                // Update progress
-                progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
-                progressText.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
-                
-                // Enable submit button and focus on answer input
-                submitBtn.disabled = false;
-                answerInput.focus();
-            }
-            
-            // Check the user's answer
-            function checkAnswer() {
-                if (answerInput.value.trim() === '') {
-                    return; // Don't process empty answers
-                }
-                
-                const userAnswer = parseInt(answerInput.value);
-                const currentQuestion = questions[currentQuestionIndex];
-                const correctAnswer = currentQuestion.answer;
-                
-                // Record the user's answer
-                currentQuestion.userAnswer = userAnswer;
-                
-                // Disable submit button
-                submitBtn.disabled = true;
-                
-                if (userAnswer === correctAnswer) {
-                    // Correct answer
-                    correctAnswers++;
-                    currentQuestion.isCorrect = true;
-                    feedback.textContent = 'Correct!';
-                    feedback.className = 'feedback correct';
-                } else {
-                    // Incorrect answer
-                    currentQuestion.isCorrect = false;
-                    feedback.textContent = `Incorrect. The correct answer is ${correctAnswer}.`;
-                    feedback.className = 'feedback incorrect';
-                }
-                
-                feedback.classList.remove('hidden');
-                
-                // Move to next question after a short delay
-                setTimeout(function() {
-                    currentQuestionIndex++;
-                    
-                    if (currentQuestionIndex < questions.length) {
-                        showQuestion();
-                    } else {
-                        finishQuiz();
-                    }
-                }, 1500);
-            }
-            
-            // Finish the quiz and show results
-            function finishQuiz() {
-                // Record end time
-                endTime = new Date();
-                const timeElapsed = Math.floor((endTime - startTime) / 1000);
-                
-                // Calculate minutes and seconds
-                const minutes = Math.floor(timeElapsed / 60);
-                const seconds = timeElapsed % 60;
-                const timeString = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-                
-                // Update results
-                scoreDisplay.textContent = `Your score: ${correctAnswers}/${questions.length}`;
-                const percentage = Math.round((correctAnswers / questions.length) * 100);
-                percentageDisplay.textContent = `Percentage: ${percentage}%`;
-                timeDisplay.textContent = `Time taken: ${timeString}`;
-                
-                // Generate question summary
-                generateQuestionSummary();
-                
-                // Hide quiz section and show results
-                quizSection.classList.add('hidden');
-                resultSection.classList.remove('hidden');
-            }
-            
-            // Generate detailed summary of all questions and answers
-            function generateQuestionSummary() {
-                const summaryContainer = document.getElementById('questionSummary');
+        }
         
+        // Start quiz
+        function startQuiz() {
+            // Validate inputs
+            quizState.questionCount = parseInt(questionCountInput.value);
+            if (quizState.questionCount < 1) {
+                quizState.questionCount = 1;
+                questionCountInput.value = 1;
+            }
+            if (quizState.questionCount > 50) {
+                quizState.questionCount = 50;
+                questionCountInput.value = 50;
+            }
+            
+            // Reset quiz state
+            quizState.questions = [];
+            quizState.currentQuestionIndex = 0;
+            quizState.correctAnswers = 0;
+            quizState.quizComplete = false;
+            quizState.questionResults = [];
+            
+            // Generate questions
+            generateQuestions();
+            
+            // Show quiz section
+            setupSection.style.display = 'none';
+            quizSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+            
+            // Display first question
+            displayQuestion();
+            
+            // Focus on answer input
+            answerInput.focus();
+        }
+        
+        // Generate questions
+        function generateQuestions() {
+            for (let i = 0; i < quizState.questionCount; i++) {
+                quizState.questions.push(generateQuestion());
+            }
+        }
+        
+        // Generate a single question
+        function generateQuestion() {
+            // Randomly select operation from selected operations
+            const operation = quizState.selectedOperations[Math.floor(Math.random() * quizState.selectedOperations.length)];
+            
+            // Determine number range based on difficulty
+            let maxNum;
+            switch (quizState.difficulty) {
+                case 'easy':
+                    maxNum = 9;
+                    break;
+                case 'medium':
+                    maxNum = 99;
+                    break;
+                case 'hard':
+                    maxNum = 999;
+                    break;
+                default:
+                    maxNum = 9;
+            }
+            
+            let num1 = Math.floor(Math.random() * maxNum) + 1;
+            let num2 = Math.floor(Math.random() * maxNum) + 1;
+            let answer;
+            
+            // Adjust numbers and calculate answer based on operation
+            switch (operation) {
+                case 'addition':
+                    answer = num1 + num2;
+                    break;
+                case 'subtraction':
+                    // Ensure num1 ≥ num2 to avoid negative answers
+                    if (num1 < num2) {
+                        [num1, num2] = [num2, num1];
+                    }
+                    answer = num1 - num2;
+                    break;
+                case 'multiplication':
+                    // Make multiplication easier for medium and hard difficulties
+                    if (quizState.difficulty === 'medium') {
+                        num2 = Math.floor(Math.random() * 12) + 1;
+                    } else if (quizState.difficulty === 'hard') {
+                        num2 = Math.floor(Math.random() * 20) + 1;
+                    }
+                    answer = num1 * num2;
+                    break;
+                case 'division':
+                    // Ensure division results in a whole number
+                    answer = Math.floor(Math.random() * maxNum) + 1;
+                    num2 = Math.floor(Math.random() * 12) + 1;
+                    num1 = answer * num2;
+                    break;
+            }
+            
+            return {
+                num1,
+                num2,
+                operation,
+                answer
+            };
+        }
+        
+        // Display current question
+        function displayQuestion() {
+            const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
+            const operationSymbol = operationSymbols[currentQuestion.operation];
+            
+            questionDisplay.textContent = `${currentQuestion.num1} ${operationSymbol} ${currentQuestion.num2} = ?`;
+            
+            // Clear previous answer and feedback
+            answerInput.value = '';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            
+            // Hide next button
+            nextButton.style.display = 'none';
+            
+            // Enable submit button
+            submitButton.disabled = false;
+            
+            // Update progress bar
+            const progress = ((quizState.currentQuestionIndex) / quizState.questionCount) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Focus on answer input
+            answerInput.focus();
+        }
+        
+        // Check answer
+        function checkAnswer() {
+            if (submitButton.disabled) return;
+            
+            // Disable submit button until next question
+            submitButton.disabled = true;
+            
+            const currentQuestion = quizState.questions[quizState.cur
