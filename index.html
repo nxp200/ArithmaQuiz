@@ -609,4 +609,87 @@
             // Disable submit button until next question
             submitButton.disabled = true;
             
-            const currentQuestion = quizState.questions[quizState.cur
+            const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
+            const userAnswer = parseInt(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedback.textContent = 'Please enter a number!';
+                feedback.className = 'feedback incorrect';
+                submitButton.disabled = false;
+                return;
+            }
+            
+            const isCorrect = userAnswer === currentQuestion.answer;
+            
+            // Store result
+            quizState.questionResults.push({
+                question: `${currentQuestion.num1} ${operationSymbols[currentQuestion.operation]} ${currentQuestion.num2}`,
+                userAnswer,
+                correctAnswer: currentQuestion.answer,
+                isCorrect
+            });
+            
+            if (isCorrect) {
+                feedback.textContent = 'Correct! 😊';
+                feedback.className = 'feedback correct';
+                quizState.correctAnswers++;
+            } else {
+                feedback.textContent = `Sorry, the correct answer is ${currentQuestion.answer}`;
+                feedback.className = 'feedback incorrect';
+            }
+            
+            // Show next button or finish quiz
+            quizState.currentQuestionIndex++;
+            
+            if (quizState.currentQuestionIndex < quizState.questionCount) {
+                // Not the last question, show next button
+                nextButton.style.display = 'block';
+            } else {
+                // Last question, finish quiz after a short delay
+                setTimeout(finishQuiz, 1500);
+            }
+        }
+        
+        // Move to next question
+        function nextQuestion() {
+            if (quizState.currentQuestionIndex < quizState.questionCount) {
+                displayQuestion();
+            }
+        }
+        
+        // Finish quiz and show results
+        function finishQuiz() {
+            quizSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+            
+            // Update score
+            const scorePercentage = Math.round((quizState.correctAnswers / quizState.questionCount) * 100);
+            scoreDisplay.textContent = `${quizState.correctAnswers} / ${quizState.questionCount} (${scorePercentage}%)`;
+            
+            // Show answer summary
+            answerSummary.innerHTML = '<h3>Question Summary:</h3>';
+            
+            quizState.questionResults.forEach((result, index) => {
+                const answerItemClass = result.isCorrect ? 'answer-item correct-item' : 'answer-item incorrect-item';
+                const answerText = result.isCorrect ? 
+                    `${result.question} = ${result.userAnswer} ✓` : 
+                    `${result.question} = ${result.userAnswer} ✗ (Correct: ${result.correctAnswer})`;
+                
+                answerSummary.innerHTML += `<div class="${answerItemClass}">${index + 1}. ${answerText}</div>`;
+            });
+            
+            quizState.quizComplete = true;
+        }
+        
+        // Restart quiz
+        function restartQuiz() {
+            // Show setup section
+            setupSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
